@@ -7,6 +7,7 @@ export async function open({ w, h, dpr = 1 }) {
   const proc = spawn(CHROME, ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${profile}`, "--no-first-run",
     "--no-default-browser-check", "--disable-background-networking", "--disable-component-update", "--hide-scrollbars", "--lang=en-US", "about:blank"],
     { stdio: ["ignore", "ignore", "pipe"] });
+  try {
   const wsUrl = await new Promise((res) => { let b = ""; proc.stderr.on("data", (d) => { b += d; const m = b.match(/DevTools listening on (ws:\/\/\S+)/); if (m) res(m[1]); }); });
   const port = new URL(wsUrl).port;
   const page = (await (await fetch(`http://127.0.0.1:${port}/json/list`)).json()).find((t) => t.type === "page");
@@ -23,4 +24,5 @@ export async function open({ w, h, dpr = 1 }) {
   const close = () => { try { proc.kill("SIGKILL"); } catch {} try { ws.close(); } catch {} try { fs.rmSync(profile, { recursive: true, force: true }); } catch {} };
   const onEvent = (f) => ls.push(f);
   return { send, ev, nav, close, onEvent };
+  } catch (e) { proc.kill("SIGKILL"); throw e; } // never leave a browser behind when setup fails
 }

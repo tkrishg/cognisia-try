@@ -9,6 +9,10 @@ import fs from "node:fs";
 
 const [url, W, H, theme, input, out] = process.argv.slice(2);
 const w = +W, h = +H, touch = input === "touch";
+if (!url || !(w > 0) || !(h > 0) || !["light", "dark"].includes(theme) || !["wheel", "touch"].includes(input) || !out) {
+  console.error("usage: node scripts/qa-session.mjs <url> <width> <height> <light|dark> <wheel|touch> <out-prefix>");
+  process.exit(2);
+}
 const HARD = 9, FRONT = 12, QUICK = 10;
 const log = [];
 const note = (m) => (log.push(`${((Date.now() - t0) / 1000).toFixed(1)}s ${m}`), console.log(log.at(-1)));
