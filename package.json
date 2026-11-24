@@ -1,0 +1,11 @@
+{
+  "name": "cognisia-try",
+  "private": true,
+  "type": "module",
+  "description": "A prototype of Cognisia, a student design project: a reader that makes a paragraph's hardest sentence plainer when you go back to it.",
+  "scripts": {
+    "build": "node scripts/port-engine.mjs && python3 scripts/build-article.py",
+    "test": "node tests/cognisia-gestures.test.mjs",
+    "test:jitter": "node tests/cognisia-gestures-jitter.mjs"
+  }
+}

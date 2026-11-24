@@ -1,0 +1,4 @@
+qa/
+rewrites/sol/*.log
+.DS_Store
+node_modules/

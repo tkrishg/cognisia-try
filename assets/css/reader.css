@@ -1,0 +1,138 @@
+/* Cognisia reader. Product look from the case study (Try-it card, tile, Glacier accent): Geist for the interface, a serif
+   (Gelasio) for the reading, the accent only on the dot, the rule and the highlight. Light and dark follow the device.
+   Motion: opacity, filter, transform and clip-path only; none of it moves the text you are reading. */
+@font-face{font-family:"Geist";src:url("../fonts/Geist-Variable.woff2") format("woff2");font-weight:100 900;font-display:swap}
+@font-face{font-family:"Gelasio";src:url("../fonts/gelasio-latin-400.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+
+:root{
+ --page:#fbfbfa;--ink:#18181b;--text:#2b2b30;--muted:#66666e;--hair:rgba(0,0,0,.09);
+ --acc:#0a92ae;--acc-text:#06758f;--wash:#a8dfee;--band:#d9f0f7;--chip:#fff;--chip-on:#18181b;--chip-on-text:#fff;--track:#e6e6ea;--ring:#06758f;
+ --shade:20,20,30;--ease:cubic-bezier(.23,1,.32,1);
+ --ui:Geist,ui-sans-serif,-apple-system,"Segoe UI",sans-serif;--read:Gelasio,Georgia,"Times New Roman",serif;
+ --fs:19px;--lh:1.7;--measure:40rem;--gutter:16px;
+ color-scheme:light}
+@media (prefers-color-scheme:dark){:root{
+ --page:#141416;--ink:#f0f0f3;--text:#d9d9de;--muted:#9a9aa3;--hair:rgba(255,255,255,.1);
+ --acc:#5de7f8;--acc-text:#5de7f8;--wash:#2e6c75;--band:#22383c;--chip:#1e1e22;--chip-on:#f0f0f3;--chip-on-text:#141416;--track:#2a2a30;--ring:#5de7f8;
+ --shade:0,0,0;color-scheme:dark}}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--text);font-family:var(--ui);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;overflow-x:clip}
+a{color:inherit;text-decoration:underline;text-decoration-color:var(--muted);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{text-decoration-color:currentColor}
+:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+
+/* the one-line note */
+.note{margin:0;padding:10px var(--gutter);border-bottom:1px solid var(--hair);font:400 13px/18px var(--ui);color:var(--muted);text-align:center;text-wrap:balance}
+.note span{color:var(--ink);font-weight:500}
+
+/* the article */
+.page{padding:0 var(--gutter)}
+.article{max-width:var(--measure);margin:0 auto;padding:56px 0 24px}
+.head{margin-bottom:40px}
+.kick{margin:0 0 14px;font:600 13px/16px var(--ui);letter-spacing:.02em;color:var(--acc-text)}
+h1{margin:0;font:650 clamp(30px,4.2vw,42px)/1.12 var(--ui);letter-spacing:-.025em;color:var(--ink);text-wrap:balance}
+.dek{margin:16px 0 0;font:400 20px/1.5 var(--read);color:var(--muted);text-wrap:pretty}
+.by{margin:20px 0 0;padding-top:16px;border-top:1px solid var(--hair);font:400 13px/20px var(--ui);color:var(--muted)}
+.sh{margin:48px 0 16px;font:600 21px/1.3 var(--ui);letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
+
+/* a reading paragraph (one or more <p>); the engine sees each .u as one paragraph */
+.u{position:relative}
+.u p{position:relative;isolation:isolate;margin:0 0 1.15em;font:400 var(--fs)/var(--lh) var(--read);color:var(--text);text-wrap:pretty;hanging-punctuation:first}
+.u-num{position:absolute;right:calc(100% + 28px);top:calc((var(--fs) * var(--lh) - 16px) / 2);font:500 12px/16px var(--ui);font-variant-numeric:tabular-nums;color:var(--muted);opacity:.7;white-space:nowrap;user-select:none;display:none}
+
+/* the dot: 8 px to see, a larger area to press. It sits on the rule's line, beside the paragraph's first line. */
+.u-dot{position:absolute;left:-15px;top:calc((var(--fs) * var(--lh) - 8px) / 2);width:8px;height:8px;padding:0;border:0;border-radius:50%;background:var(--acc);cursor:pointer;
+ opacity:0;transform:scale(.4);transition:opacity 240ms var(--ease),transform 320ms var(--ease);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.u-dot::after{content:"";position:absolute;inset:-10px -8px}
+.u-dot.is-in{opacity:1;transform:none}
+.u-dot:focus-visible{outline-offset:4px;border-radius:50%}
+.u.is-fired .u-dot{cursor:default}
+
+/* the rewritten sentence: a soft band behind it, a stronger mark on the words that changed, a rule beside it */
+@property --hla{syntax:"<color>";inherits:true;initial-value:transparent}
+.s{--hla:transparent;transition:opacity 75ms linear,--hla 150ms ease-out}
+.s.is-lit{--hla:var(--wash);transition:opacity 75ms linear,--hla 320ms var(--ease) 80ms}
+.s.is-fading{opacity:0}
+::highlight(cog){background-color:var(--hla);color:var(--ink)}
+.w{transition:opacity 240ms var(--ease),filter 240ms var(--ease)}
+.w.is-out{opacity:0;filter:blur(2px);transition-duration:160ms}
+.w.is-pre{opacity:0;filter:blur(2px);transition:none}
+.cog-mark{background:var(--hla);color:var(--ink)}
+.band{position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:0;transition:opacity 150ms ease-out}
+.band>i{position:absolute;background:var(--band)}
+.band>i:first-child{border-top-left-radius:4px;border-top-right-radius:4px}
+.band>i:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px}
+.is-banded .band{opacity:1;transition:opacity 200ms var(--ease)}
+.is-banded .band.is-sweep{transition:none}
+.is-banded .band.is-sweep>i{animation:sweep 320ms var(--ease) var(--d) both}
+@keyframes sweep{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0)}}
+.rule{position:absolute;left:-12px;top:0;width:2px;height:0;border-radius:1px;background:var(--acc);opacity:0;transform:translateX(-6px);
+ transition:opacity 120ms ease-out,transform 120ms ease-out,background-color 150ms ease-out}
+.is-fired .rule{opacity:1;transform:none}
+.is-fired:not(.is-light) .rule{background:var(--muted)}
+
+/* Original / Light: under the paragraph on narrow screens, in the margin beside the sentence on wide ones */
+.ctl{display:grid;grid-template-rows:0fr;transition:grid-template-rows 240ms var(--ease)}
+.ctl.is-in{grid-template-rows:1fr}
+.ctl>div{overflow:hidden;min-height:0}
+.seg{display:inline-flex;align-items:center;gap:2px;margin:-4px 0 18px;padding:2px;border-radius:9px;background:var(--track);box-shadow:inset 0 0 0 1px var(--hair);
+ opacity:0;transition:opacity 200ms var(--ease) 60ms}
+.ctl.is-in .seg{opacity:1}
+.seg button{position:relative;height:28px;padding:0 12px;border:0;border-radius:7px;background:none;color:var(--muted);font:500 13px/28px var(--ui);cursor:pointer;
+ transition:color 150ms ease-out,background-color 150ms ease-out,transform 150ms ease-out;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.seg button::after{content:"";position:absolute;inset:-8px -2px}
+.seg button:active{transform:scale(.96)}
+.seg button[aria-pressed="true"]{background:var(--chip);color:var(--ink);box-shadow:0 0 0 1px var(--hair),0 1px 2px rgba(var(--shade),.12)}
+.seg button[data-v="light"][aria-pressed="true"]::before{content:"";display:inline-block;width:6px;height:6px;margin-right:7px;border-radius:50%;background:var(--acc);vertical-align:1px}
+.seg-label{margin:0 6px 0 8px;font:400 12px/28px var(--ui);color:var(--muted)}
+@media (hover:hover) and (pointer:fine){.seg button:not([aria-pressed="true"]):hover{color:var(--ink)}}
+
+/* the rail: where you are in the article, and the paragraphs that got a dot (wide screens only, decorative) */
+.rail{display:none}
+
+/* footer */
+.foot{max-width:var(--measure);margin:24px auto 0;padding:24px var(--gutter) 56px;box-sizing:content-box;border-top:1px solid var(--hair);font:400 12.5px/1.6 var(--ui);color:var(--muted)}
+.foot p{margin:0 0 10px;text-wrap:pretty}
+
+@media (max-width:560px){
+ :root{--fs:18px;--lh:1.65;--gutter:20px}
+ .article{padding-top:36px}
+ .head{margin-bottom:32px}
+ .dek{font-size:18px}
+ .sh{margin-top:40px;font-size:19px}
+}
+@media (min-width:1100px){
+ .u-num{display:block}
+ .page{position:relative}
+ /* the control leaves the flow and sits in the margin, level with its sentence */
+ .ctl{position:absolute;right:calc(100% + 68px);display:block;transition:none;pointer-events:none}
+ .ctl>div{overflow:visible}
+ .ctl.is-in{pointer-events:auto}
+ .seg{margin:0;white-space:nowrap;opacity:0;transform:translateX(6px);transition:opacity 200ms var(--ease),transform 240ms var(--ease)}
+ .ctl.is-in .seg{opacity:1;transform:none}
+ .seg-label{display:none}
+ .rail{display:block;position:fixed;right:28px;top:50%;width:20px;height:min(56vh,520px);transform:translateY(-50%);pointer-events:none;opacity:0;transition:opacity 400ms var(--ease)}
+ .rail.is-in{opacity:1}
+ .rail i{position:absolute;left:8px;width:4px;border-radius:2px;background:var(--track)}
+ .rail i.is-read{background:color-mix(in oklab,var(--muted) 45%,var(--track))}
+ .rail b{position:absolute;left:6px;width:8px;height:8px;border-radius:50%;background:var(--acc);transform:scale(0);transition:transform 320ms var(--ease)}
+ .rail b.is-in{transform:none}
+ .rail u{position:absolute;left:2px;width:16px;height:6px;margin-top:-3px;border-radius:3px;border:2px solid var(--acc);background:var(--page);text-decoration:none;transition:top 120ms linear}
+}
+@media (prefers-reduced-motion:reduce){
+ .w,.w.is-out,.w.is-pre{filter:none;transition:none}
+ .u-dot{transform:none;transition:opacity 150ms linear}
+ .rule{transform:none;transition:opacity 150ms linear,background-color 150ms linear}
+ .s.is-lit{transition:opacity 75ms linear,--hla 150ms linear}
+ .is-banded .band.is-sweep>i{animation:none}.is-banded .band.is-sweep{transition:opacity 150ms linear}
+ .ctl,.seg,.seg button,.rail u,.rail b{transition:none}.seg button:active{transform:none}
+}
+@media (forced-colors:active){
+ ::highlight(cog){background-color:Highlight;color:HighlightText}
+ .band>i{forced-color-adjust:none;background:Canvas;box-shadow:inset 0 0 0 1px CanvasText}
+ .rule,.u-dot{forced-color-adjust:none;background:CanvasText}
+}
+@media print{.note,.u-dot,.ctl,.rail,.band,.rule{display:none}}
