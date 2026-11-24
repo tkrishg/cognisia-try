@@ -28,7 +28,10 @@ b.onEvent((m) => {
   if (m.method === "Runtime.exceptionThrown") errors.push(m.params.exceptionDetails.exception?.description || m.params.exceptionDetails.text);
   if (m.method === "Runtime.consoleAPICalled" && (m.params.type === "error" || m.params.type === "warning")) errors.push(`${m.params.type}: ${m.params.args.map((a) => a.value ?? a.description).join(" ")}`);
   if (m.method === "Log.entryAdded" && m.params.entry.level === "error") errors.push(`log: ${m.params.entry.text} ${m.params.entry.url ?? ""}`);
+  if (m.method === "Network.requestWillBeSent") requests.push(m.params.request.url);
 });
+const requests = [];
+await b.send("Network.enable");
 await b.send("Log.enable");
 await b.send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: theme }] });
 if (touch) {
@@ -145,7 +148,8 @@ const toggleOk = o.pressed[0] === "Original" && o.text !== l.light && o.text.sta
 note(`toggle: original pressed ${JSON.stringify(o.pressed)} has 'although' ${o.text.includes("although")}; light pressed ${JSON.stringify(l.pressed)} matches ${l.text === l.light}`);
 const final = await state();
 if (process.env.QA_DEBUG) note(`events ${await b.ev("JSON.stringify((window.__events || []).map((e) => [Math.round(e.t * 10) / 10, e.kind === 'position' ? e.paragraph : e.kind]))")}`);
-const res = { url, w, h, theme, input, quickOk, dotOk, plainOk, toggleOk, overflowX: final.overflowX, errors, pass: quickOk && dotOk && plainOk && toggleOk && errors.length === 0 && final.overflowX <= 0 };
+const origin = new URL(url).origin, offsite = requests.filter((r) => !r.startsWith(origin) && !r.startsWith("data:"));
+const res = { url, w, h, theme, input, quickOk, dotOk, plainOk, toggleOk, overflowX: final.overflowX, errors, requests: requests.length, offsite, pass: quickOk && dotOk && plainOk && toggleOk && errors.length === 0 && final.overflowX <= 0 && offsite.length === 0 };
 note(`RESULT ${JSON.stringify(res)}`);
 fs.writeFileSync(`${out}-result.json`, JSON.stringify({ ...res, log }, null, 1));
 clearTimeout(kill);
